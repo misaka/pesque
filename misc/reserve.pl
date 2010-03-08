@@ -19,7 +19,7 @@ sub reserve {
   );
   print Dumper( $payload_json );
 
-  my $payload = jsonToObj( $payload_json );
+  my $payload = JSON::from_json( $payload_json );
   print Dumper( $payload );
 
   Pesque::Job->new(
