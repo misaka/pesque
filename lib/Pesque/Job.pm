@@ -8,7 +8,7 @@ use Data::Dumper;
 has 'payload_class' => ( is => 'ro', isa => 'Str' );
 has 'args' => ( is => 'ro', isa => 'ArrayRef' );
 
-sub enqueue {
+sub create {
   my $self = shift;
   my $queue = shift;
 

@@ -3,18 +3,46 @@ package Pesque;
 
 use Pesque::Job;
 
+use vars qw( $redis );
+
 use Data::Dumper;
+
+sub redis {
+  return $redis if( $redis );
+
+  connect_to_redis( "localhost:6379" );
+}
+
+sub connect_to_redis {
+  my( $server ) = shift;
+
+  if( ref( $server) && $server->isa( 'Redis' ) ) {
+    $redis = $server;
+  } elsif( $server =~ m/^([a-z0-9-]+):(\d+)$/ ) {
+    my $host = $1;
+    my $port = $2;
+
+    $redis = Redis->new(
+      host => $host,
+      port => $port
+    );
+  } else {
+    die( "Can't connect/use Redis connection: $redis" );
+  }
+  $redis;
+}
 
 sub enqueue {
   my $job_class = shift;
   my @args = @_;
+
 
   my $job = Pesque::Job->new(
     payload_class => $job_class,
     args          => \@args
   );
 
-  $job->enqueue( $job_class->queue );
+  $job->create( $job_class->queue );
 }
 
 sub reserve {
@@ -27,9 +55,7 @@ sub push {
   my $queue = shift;
   my $payload = shift;
 
-  # TODO: Abstract the queue out so that we don't create a new connection
-  #       every time we run push or pop.
-  my $redis = Redis->new;
+  my $redis = redis();
 
   # TODO: Can we abstract how we get the name of the queue here?
   #       The Ruby library provides a handy way invoke a namespace.
@@ -39,7 +65,7 @@ sub push {
 sub pop {
   my $queue = shift;
 
-  my $redis = Redis->new;
+  my $redis = redis();
   $redis->lpop( "resque:queue:$queue" );
 }
 
