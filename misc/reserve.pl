@@ -6,27 +6,9 @@ use Data::Dumper;
 
 use lib qw( lib );
 
+use Pesque;
 use Pesque::Job;
 
 
-sub reserve {
-  my $queue_name = shift;
-
-  my $redis = Redis->new;
-
-  my $payload_json = $redis->lpop(
-    "resque:queue:$queue_name"
-  );
-  print Dumper( $payload_json );
-
-  my $payload = JSON::from_json( $payload_json );
-  print Dumper( $payload );
-
-  Pesque::Job->new(
-    payload_class => $payload->{ class },
-    args => $payload->{ args }
-  );
-}
-
-$job = reserve( 'mos' );
+$job = Pesque::reserve( 'mos' );
 print Dumper $job;
